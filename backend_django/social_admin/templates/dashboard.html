@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin Dashboard</title>
+
+    <!-- Google Font -->
+    <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Poppins", sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
+            padding: 30px 40px;
+            color: white;
+        }
+
+        /* Navbar */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 35px;
+            animation: fadeDown 1s ease;
+        }
+
+        .navbar h1 {
+            font-size: 34px;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Change password button (small) */
+        .change-password {
+            padding: 6px 14px;
+            background: #facc15;
+            color: #111827;
+            text-decoration: none;
+            font-weight: 600;
+            border-radius: 18px;
+            font-size: 12px;
+            transition: 0.3s;
+        }
+
+        .change-password:hover {
+            background: #fde047;
+            transform: scale(1.08);
+        }
+
+        /* Logout icon button */
+        .logout-btn {
+            width: 38px;
+            height: 38px;
+            background: #f87171;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: #111827;
+            text-decoration: none;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #fb7185;
+            transform: rotate(15deg) scale(1.1);
+        }
+
+        /* Dashboard Grid */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 25px;
+        }
+
+        /* Card */
+        .card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            border-radius: 18px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            transition: all 0.4s ease;
+            animation: fadeUp 1s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                120deg,
+                transparent,
+                rgba(255, 255, 255, 0.25),
+                transparent
+            );
+            transform: rotate(25deg);
+            transition: 0.6s;
+        }
+
+        .card:hover::before {
+            left: 100%;
+        }
+
+        .card:hover {
+            transform: translateY(-12px) scale(1.03);
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.35);
+        }
+
+        .card h2 {
+            font-size: 22px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .count {
+            font-size: 46px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            background: linear-gradient(to right, #facc15, #f97316);
+            /* use standard properties to avoid linter warnings */
+            background-clip: text;
+            color: transparent;
+            animation: pulse 2s infinite;
+        }
+
+        .card a {
+            display: inline-block;
+            padding: 10px 18px;
+            text-decoration: none;
+            color: #111827;
+            background: #facc15;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .card a:hover {
+            background: #fde047;
+            transform: scale(1.08);
+        }
+
+        /* Animations */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); }
+        }
+
+        /* Logout Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+        .modal-content {
+            background: white;
+            color: black;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            width: 300px;
+        }
+        .modal button {
+            margin: 8px;
+            padding: 8px 18px;
+            border: none;
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .confirm { background: #22c55e; color: white; }
+        .cancel { background: #f87171; color: white; }
+    </style>
+</head>
+
+<body>
+
+<!-- Navbar -->
+<div class="navbar">
+    <h1>Admin Dashboard</h1>
+
+    <div class="nav-actions">
+        <a href="{% url 'admin_change_password' %}" class="change-password">Change Password</a>
+        <a href="{% url 'admin_logout' %}" class="logout-btn" title="Logout">
+            <i class="fas fa-power-off"></i>
+        </a>
+    </div>
+</div>
+
+<!-- Dashboard Cards -->
+<div class="dashboard">
+
+    <div class="card">
+        <h2>Total Users</h2>
+        <div class="count">{{ total_users }}</div>
+        <a href="{% url 'users_list' %}">View User Details</a>
+    </div>
+
+    <div class="card">
+        <h2>Total Communities</h2>
+        <div class="count">{{ total_communities }}</div>
+        <a href="{% url 'communities_list' %}">View Communities</a>
+    </div>
+
+    <div class="card">
+        <h2>Total Posts</h2>
+        <div class="count">{{ total_posts }}</div>
+        <a href="{% url 'post_management' %}">View Posts</a>
+    </div>
+
+    <div class="card">
+        <h2>Total Comments</h2>
+        <div class="count">{{ total_comments }}</div>
+        <a href="{% url 'comment_management' %}">View Comments</a>
+    </div>
+
+    <div class="card">
+        <h2>Reported Contents & Messages</h2>
+        <div class="count">{{ total_reports }}</div>
+        <a href="{% url 'reported_management' %}">View Reports</a>
+    </div>
+
+</div>
+
+<!-- Logout Confirmation Modal -->
+<div class="modal" id="logoutModal">
+    <div class="modal-content">
+        <p>Are you sure you want to logout?</p>
+        <button class="confirm" id="confirmLogout">Yes</button>
+        <button class="cancel" id="cancelLogout">No</button>
+    </div>
+</div>
+
+<script>
+    const logoutBtn = document.querySelector(".logout-btn");
+    const modal = document.getElementById("logoutModal");
+    const confirmBtn = document.getElementById("confirmLogout");
+    const cancelBtn = document.getElementById("cancelLogout");
+
+    // Show modal when logout clicked
+    logoutBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        modal.style.display = "flex";
+    });
+
+    // Cancel logout
+    cancelBtn.addEventListener("click", () => {
+        modal.style.display = "none";
+    });
+
+    // Confirm logout
+    confirmBtn.addEventListener("click", () => {
+        window.location.href = "{% url 'admin_logout' %}";
+    });
+</script>
+
+</body>
+</html>

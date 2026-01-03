@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+{% load static %}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Settings</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+<style>
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #6366f1, #ec4899);
+    color: white;
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container {
+    background: rgba(255,255,255,0.15);
+    padding: 30px;
+    border-radius: 15px;
+    backdrop-filter: blur(12px);
+    text-align: center;
+    width: 400px;
+    position: relative;
+}
+
+/* Profile pic */
+.profile-pic {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 15px;
+    border: 2px solid #fff;
+}
+
+/* Buttons */
+.button {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 16px;
+    margin: 5px;
+    border-radius: 20px;
+    background: #facc15;
+    color: black;
+    text-decoration: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.button:hover { background: #fde047; }
+.logout-icon {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 20px;
+    height: 20px;
+    border-left: 2px solid black;
+    border-bottom: 2px solid black;
+    transform: rotate(-45deg);
+    cursor: pointer;
+}
+
+/* Edit inputs */
+input[type="text"], input[type="file"] {
+    display: none;
+    margin: 8px 0;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: none;
+    width: 80%;
+}
+
+/* Small Change Password */
+.change-pswd {
+    font-size: 14px;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Logout Icon -->
+    <div class="logout-icon" title="Logout"></div>
+
+    <!-- Profile Picture -->
+    <div id="pic-section">
+        {% if admin.profile_pic %}
+            <img src="{{ admin.profile_pic }}" alt="Profile Picture" class="profile-pic" id="profile-pic">
+        {% else %}
+            <img src="{% static 'images/default_profile.svg' %}" alt="No Profile" class="profile-pic">
+        {% endif %}
+        <input type="file" id="profile-input">
+        <button class="button" id="edit-pic-btn">Edit Picture</button>
+    </div>
+
+    <!-- Name -->
+    <div id="name-section">
+        <h2 id="display-name">{{ admin.name }}</h2>
+        <input type="text" id="name-input" value="{{ admin.name }}">
+        <button class="button" id="edit-name-btn">Edit Name</button>
+    </div>
+
+    <!-- Email -->
+    <p>{{ admin.email }}</p>
+
+    <!-- Update Button -->
+    <button class="button" id="update-btn" style="display:none;">Update</button>
+
+    <!-- Change Password -->
+    <a href="#" class="button change-pswd">Change Password</a>
+
+</div>
+
+<script>
+// Elements
+const editNameBtn = document.getElementById('edit-name-btn');
+const editPicBtn = document.getElementById('edit-pic-btn');
+const nameInput = document.getElementById('name-input');
+const profileInput = document.getElementById('profile-input');
+const updateBtn = document.getElementById('update-btn');
+const displayName = document.getElementById('display-name');
+const profilePic = document.getElementById('profile-pic');
+const noPic = document.getElementById('no-pic');
+
+// Edit Name
+editNameBtn.addEventListener('click', () => {
+    nameInput.style.display = 'block';
+    editNameBtn.style.display = 'none';
+    updateBtn.style.display = 'inline-flex';
+});
+
+// Edit Picture
+editPicBtn.addEventListener('click', () => {
+    profileInput.style.display = 'block';
+    editPicBtn.style.display = 'none';
+    updateBtn.style.display = 'inline-flex';
+});
+
+// Mock Update Button
+updateBtn.addEventListener('click', () => {
+    if(nameInput.value) displayName.textContent = nameInput.value;
+    if(profileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            if(profilePic){
+                profilePic.src = e.target.result;
+            } else {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.className = 'profile-pic';
+                document.getElementById('pic-section').prepend(img);
+                if(noPic) noPic.style.display = 'none';
+            }
+        };
+        reader.readAsDataURL(profileInput.files[0]);
+    }
+    nameInput.style.display = 'none';
+    profileInput.style.display = 'none';
+    updateBtn.style.display = 'none';
+    editNameBtn.style.display = 'inline-flex';
+    editPicBtn.style.display = 'inline-flex';
+});
+</script>
+
+</body>
+</html>

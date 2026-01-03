@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+{% load static %}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Post Management</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+
+<style>
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #6366f1, #ec4899);
+    color: white;
+    margin: 0;
+    min-height: 100vh;
+}
+
+/* Navbar */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 40px;
+}
+.navbar a {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    margin-left: auto;
+}
+
+/* Container */
+.container {
+    width: 90%;
+    max-width: 1400px;
+    margin: 20px auto;
+}
+
+/* Header */
+.header-box {
+    background: rgba(255,255,255,0.15);
+    padding: 20px;
+    border-radius: 15px;
+    backdrop-filter: blur(12px);
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Search */
+.search-form {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 15px;
+}
+.search-form input {
+    padding: 10px 16px;
+    border-radius: 20px;
+    border: none;
+    outline: none;
+    width: 280px;
+}
+
+/* Table */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(12px);
+    border-radius: 15px;
+    overflow: hidden;
+}
+th, td {
+    padding: 14px;
+    text-align: center;
+}
+th {
+    background: rgba(255,255,255,0.25);
+}
+tr:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+/* Status */
+.status {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+}
+.active {
+    background: #22c55e;
+    color: black;
+}
+.hidden {
+    background: #f87171;
+    color: black;
+}
+
+/* Actions */
+.actions {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+.action-btn {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+}
+.view-btn {
+    background: #60a5fa;
+    color: black;
+}
+.delete-btn {
+    background: #f87171;
+    color: black;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.pagination a.page-num,
+.pagination span.current {
+    padding: 6px 12px;
+    border-radius: 50%;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.pagination a.page-num {
+    background: #facc15;
+    color: black;
+}
+
+.pagination a.page-num:hover {
+    background: #fde047;
+}
+
+.pagination span.current {
+    background: white;
+    color: black;
+}
+
+/* Arrow buttons */
+.pagination a.arrow {
+    background: none;
+    color: white;
+    font-size: 20px;
+    padding: 0 6px;
+}
+
+.pagination span.disabled-arrow {
+    color: rgba(255,255,255,0.4);
+    font-size: 20px;
+}
+
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+.modal-content {
+    background: white;
+    color: black;
+    padding: 25px;
+    border-radius: 15px;
+    width: 350px;
+    text-align: center;
+}
+.modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+}
+.cancel-btn {
+    background: #9ca3af;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+}
+.confirm-btn {
+    background: #ef4444;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    color: white;
+    cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<!-- Navbar -->
+<div class="navbar">
+    
+    <a href="{% url 'admin_dashboard' %}">Home</a>
+</div>
+
+<div class="container">
+
+    <!-- Header -->
+    <div class="header-box">
+        <h2>Post Management</h2>
+        <span>Total Posts: {{ posts_page.paginator.count }}</span>
+    </div>
+
+    <!-- Dynamic Search -->
+    <form method="get" class="search-form" id="searchForm">
+        <input type="text"
+                name="q"
+                placeholder="Search by community or user..."
+                value="{{ query }}"
+                onkeyup="debouncedSearch()">
+
+    </form>
+
+    <!-- Table -->
+    <div class="table-responsive">
+    <table>
+        <tr>
+            <th>Sl No.</th>
+            <th>Post ID</th>
+            <th>Community</th>
+            <th>Posted By</th>
+            <th>Posted At</th>
+            <th>Likes</th>
+            <th>Comments</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+
+        {% for post in posts_page %}
+        <tr>
+            <td>{{ forloop.counter0|add:posts_page.start_index }}</td>
+            <td>{{ post.id }}</td>
+            <td>{{ post.community.name|default:"—" }}</td>
+            <td>{{ post.postedby.name }}</td>
+            <td>{{ post.created_at|date:"d M Y" }}</td>
+            <td>{{ post.likes_count }}</td>
+            <td>{{ post.comments_count }}</td>
+            <td>
+                <span class="status {{ post.status }}">{{ post.status }}</span>
+            </td>
+            <td>
+                <div class="actions">
+                    <a href="{% url 'post_detail' post.id %}" class="action-btn view-btn">View</a>
+                    <span class="action-btn delete-btn" onclick="openDeleteModal('{{ post.id }}')">Delete</span>
+                </div>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="9">No posts found</td>
+        </tr>
+        {% endfor %}
+    </table>
+    </div>
+
+    <div class="pagination">
+
+        {% if posts_page.has_previous %}
+            <a class="arrow" href="?page={{ posts_page.previous_page_number }}&q={{ query }}">‹</a>
+        {% else %}
+            <span class="disabled-arrow">‹</span>
+        {% endif %}
+
+        {% for num in posts_page.paginator.page_range %}
+            {% if num == posts_page.number %}
+                <span class="current">{{ num }}</span>
+            {% elif num >= posts_page.number|add:'-2' and num <= posts_page.number|add:'2' %}
+                <a class="page-num" href="?page={{ num }}&q={{ query }}">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {% if posts_page.has_next %}
+            <a class="arrow" href="?page={{ posts_page.next_page_number }}&q={{ query }}">›</a>
+        {% else %}
+            <span class="disabled-arrow">›</span>
+        {% endif %}
+
+    </div>
+
+
+</div>
+
+<!-- DELETE MODAL -->
+<div id="deleteModal" class="modal">
+    <div class="modal-content">
+        <h3>Delete Post</h3>
+        <p>Are you sure you want to delete this post?</p>
+
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="delete_id" id="deleteInput">
+
+            <div class="modal-actions">
+                <button type="button" class="cancel-btn" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="confirm-btn">Delete</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+let searchTimer = null;
+
+function debouncedSearch() {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+        document.getElementById("searchForm").submit();
+    }, 500); // waits 500ms after typing stops
+}
+
+function openDeleteModal(id) {
+    document.getElementById("deleteInput").value = id;
+    document.getElementById("deleteModal").style.display = "flex";
+}
+
+function closeModal() {
+    document.getElementById("deleteModal").style.display = "none";
+}
+</script>
+
+
+</body>
+</html>

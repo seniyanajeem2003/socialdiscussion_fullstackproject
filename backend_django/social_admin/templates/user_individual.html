@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+{% load static %}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ user.name }} - User Detail</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+<style>
+body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #6366f1, #ec4899); color: white; margin: 0; min-height: 100vh; }
+.navbar { display: flex; justify-content: flex-end; padding: 20px 40px; }
+.navbar a { color: white; text-decoration: none; font-weight: 500; }
+.container { width: 90%; max-width: 1200px; margin: 20px auto; }
+.user-header { display: flex; align-items: center; gap: 20px; margin-bottom: 30px; background: rgba(255,255,255,0.15); padding: 20px; border-radius: 15px; backdrop-filter: blur(12px); }
+.user-header img { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; }
+.status { font-weight: 600; padding: 5px 12px; border-radius: 20px; display: inline-block; }
+.Active { background: #22c55e; color: black; }
+.Blocked { background: #fbbf24; color: black; }
+.action-buttons { margin-top: 10px; display: flex; gap: 10px; }
+.btn { padding: 8px 16px; border-radius: 20px; background: #facc15; color: black; text-decoration: none; font-weight: 600; }
+table { width: 100%; margin: 20px 0; border-collapse: collapse; background: rgba(255,255,255,0.15); border-radius: 15px; }
+th, td { padding: 14px; text-align: center; }
+th { background: rgba(255,255,255,0.2); }
+tr:hover { background: rgba(255,255,255,0.25); }
+.search-form { display: flex; justify-content: flex-end; margin-bottom: 10px; gap: 5px; }
+.search-form input { padding: 6px 10px; border-radius: 8px; border: none; width: 200px; }
+.pagination { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; }
+.pagination a, .pagination span { padding: 6px 12px; border-radius: 20px; background: #facc15; color: black; text-decoration: none; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div class="navbar">
+    <a href="{% url 'users_list' %}">Back to Users</a>
+</div>
+
+<div class="container">
+    <!-- User Info -->
+    <div class="user-header">
+        {% if user.profile_pic %}
+        <img src="{{ user.profile_pic.url }}" alt="{{ user.name }}" class="profile-pic">
+        {% else %}
+        <img src="{% static 'images/default_profile.svg' %}" alt="{{ user.name }}" class="profile-pic">
+        {% endif %}
+        <div class="info">
+            <h2>{{ user.name }}</h2>
+            <span class="status {% if user.is_active %}Active{% else %}Blocked{% endif %}">
+                {% if user.is_active %}Active{% else %}Blocked{% endif %}
+            </span>
+            <div class="action-buttons">
+                {% if user.is_active %}
+                    <a href="?action=ban" class="btn">Ban</a>
+                {% else %}
+                    <a href="?action=reactivate" class="btn">Reactivate</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Posts Section -->
+    <h3>Posts by {{ user.name }}</h3>
+    <input type="text" id="postSearch" class="search-form" placeholder="Search posts by title or caption">
+
+    <div class="table-responsive">
+    <table id="postsTable">
+        <tr>
+            <th>Sl No.</th>
+            <th>Title</th>
+            <th>Caption</th>
+            <th>Likes</th>
+            <th>Date Created</th>
+        </tr>
+        {% for post in posts_page %}
+        <tr>
+            <td>{{ forloop.counter0|add:post_sl_start|add:1 }}</td>
+            <td>{{ post.title }}</td>
+            <td>{{ post.caption }}</td>
+            <td>{{ post.likes_count }}</td>
+            <td>{{ post.created_at|date:"Y-m-d" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No posts found</td></tr>
+        {% endfor %}
+    </table>
+
+    <!-- Communities Section -->
+    <h3>Communities by {{ user.name }}</h3>
+    <input type="text" id="comSearch" class="search-form" placeholder="Search communities by name">
+
+    <table id="communitiesTable">
+        <tr>
+            <th>Sl No.</th>
+            <th>Name</th>
+            <th>No. of Users</th>
+            <th>Date Created</th>
+        </tr>
+        {% for com in communities_page %}
+        <tr>
+            <td>{{ forloop.counter0|add:com_sl_start|add:1 }}</td>
+            <td>{{ com.name }}</td>
+            <td>{{ com.members.count }}</td>
+            <td>{{ com.created_at|date:"Y-m-d" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">No communities found</td></tr>
+        {% endfor %}
+    </table>
+</div>
+
+<script>
+function debounce(func, delay) {
+    let timer;
+    return function(...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => func.apply(this, args), delay);
+    };
+}
+
+// Live search for posts
+$('#postSearch').on('input', debounce(function() {
+    const query = $(this).val();
+    $.ajax({
+        url: "{% url 'user_detail' user.id %}",
+        data: { q_post: query },
+        success: function(data) {
+            const html = $(data).find('#postsTable').html();
+            $('#postsTable').html(html);
+        }
+    });
+}, 300));
+
+// Live search for communities
+$('#comSearch').on('input', debounce(function() {
+    const query = $(this).val();
+    $.ajax({
+        url: "{% url 'user_detail' user.id %}",
+        data: { q_com: query },
+        success: function(data) {
+            const html = $(data).find('#communitiesTable').html();
+            $('#communitiesTable').html(html);
+        }
+    });
+}, 300));
+</script>
+
+</body>
+</html>

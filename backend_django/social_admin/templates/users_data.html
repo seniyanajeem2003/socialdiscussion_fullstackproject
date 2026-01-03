@@ -1,0 +1,212 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Users Management</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+<style>
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #6366f1, #ec4899);
+    min-height: 100vh;
+    color: white;
+    margin: 0;
+}
+
+/* Navbar */
+.navbar {
+    display: flex;
+    justify-content: flex-end;
+    padding: 20px 40px;
+}
+.navbar a {
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    margin-left: 40px; /* more space from right */
+}
+.navbar a:hover { text-decoration: underline; }
+
+/* Header Box */
+.header-box {
+    background: rgba(255,255,255,0.15);
+    padding: 15px 20px;
+    border-radius: 15px;
+    backdrop-filter: blur(12px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px auto;
+    width: 90%;
+    font-weight: 600;
+}
+.header-box h1 {
+    margin: 0;
+    font-size: 20px;
+}
+.header-box span {
+    font-size: 16px;
+}
+
+/* Search Bar */
+.search-container {
+    width: 90%;
+    margin: 0 auto 20px auto;
+    display: flex;
+    justify-content: flex-end;
+}
+.search-container input[type="text"] {
+    width: 250px;
+    padding: 10px 15px;
+    border-radius: 30px;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    background: rgba(255,255,255,0.2);
+    color: white;
+    transition: 0.3s;
+}
+.search-container input[type="text"]::placeholder { color: rgba(255,255,255,0.7); }
+.search-container input[type="text"]:focus {
+    background: rgba(255,255,255,0.35);
+    box-shadow: 0 0 10px rgba(255,255,255,0.3);
+}
+
+/* Table */
+table {
+    width: 90%;
+    margin: auto;
+    border-collapse: collapse;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(12px);
+    border-radius: 15px;
+    overflow: hidden;
+}
+th, td { padding: 16px; text-align: center; }
+th { background: rgba(255,255,255,0.2); font-weight: 500; }
+tr:hover { background: rgba(255,255,255,0.25); transition: 0.3s; }
+
+/* Buttons */
+.btn {
+    padding: 6px 14px;
+    border-radius: 20px;
+    background: #facc15;
+    color: black;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+.btn:hover {
+    transform: scale(1.1);
+    background: #fde047;
+}
+
+/* Status Labels */
+.status {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    display: inline-block;
+}
+.Active { background: #22c55e; color: black; }
+.Blocked { background: #f87171; color: black; }
+
+/* Pagination */
+.pagination {
+    margin: 30px auto;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+.pagination a, .pagination span {
+    padding: 8px 14px;
+    border-radius: 50%;
+    text-decoration: none;
+    font-weight: 600;
+    background: rgba(255,255,255,0.2);
+    color: white;
+    transition: 0.3s;
+}
+.pagination a:hover { background: #facc15; color: black; transform: scale(1.15); }
+.pagination .active { background: #facc15; color: black; transform: scale(1.2); }
+</style>
+</head>
+
+<body>
+
+<!-- Home Link -->
+<div class="navbar">
+    <a href="{% url 'admin_dashboard' %}">Home</a>
+</div>
+
+<!-- Header Box -->
+<div class="header-box">
+    <h1>Users Management</h1>
+    <span>Total Users: {{ page_obj.paginator.count }}</span>
+</div>
+
+<!-- Search -->
+<div class="search-container">
+    <input type="text" id="searchBox" placeholder="Search by name or email" value="{{ query }}">
+</div>
+
+<!-- Table -->
+<div class="table-responsive">
+<table id="usersTable">
+    <tr>
+        <th>Sl No.</th>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Status</th>
+        <th>Action</th>
+    </tr>
+    {% for user in page_obj %}
+    <tr>
+        <td>{{ forloop.counter0|add:sl_start|add:1 }}</td>
+        <td>{{ user.name }}</td>
+        <td>{{ user.email }}</td>
+        <td><span class="status {% if user.is_active %}Active{% else %}Blocked{% endif %}">
+            {% if user.is_active %}Active{% else %}Blocked{% endif %}</span>
+        </td>
+        <td><a href="{% url 'user_detail' user.id %}" class="btn">View</a></td>
+    </tr>
+    {% endfor %}
+</table>
+</div>
+
+<!-- PAGINATION -->
+<div class="pagination">
+    {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&q={{ query }}">‹</a>
+    {% else %}
+        <span class="disabled">‹</span>
+    {% endif %}
+
+    {% for num in page_obj.paginator.page_range %}
+        {% if num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
+            {% if num == page_obj.number %}
+                <span class="active">{{ num }}</span>
+            {% else %}
+                <a href="?page={{ num }}&q={{ query }}">{{ num }}</a>
+            {% endif %}
+        {% elif num == 1 or num == page_obj.paginator.num_pages %}
+            <a href="?page={{ num }}&q={{ query }}">{{ num }}</a>
+        {% elif num == page_obj.number|add:'-3' or num == page_obj.number|add:'3' %}
+            <span>…</span>
+        {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&q={{ query }}">›</a>
+    {% else %}
+        <span class="disabled">›</span>
+    {% endif %}
+</div>
+
+
+
+</body>
+</html>

@@ -1,0 +1,296 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+{% load static %}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ community.name }} - Community Detail</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+
+<style>
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #6366f1, #ec4899);
+    color: white;
+    margin: 0;
+    min-height: 100vh;
+}
+
+/* Navbar */
+.navbar {
+    display: flex;
+    justify-content: flex-end;
+    padding: 20px 40px;
+}
+.navbar a {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+/* Container */
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 20px auto;
+}
+
+/* Headings */
+h1 {
+    text-align: center;
+}
+
+/* Community Info */
+.community-info {
+    display: flex;
+    justify-content: space-between;
+    background: rgba(255,255,255,0.15);
+    padding: 15px;
+    border-radius: 15px;
+    margin-bottom: 15px;
+}
+
+/* Search */
+.search-form {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 15px;
+}
+.search-form input {
+    padding: 8px 14px;
+    border-radius: 25px;
+    border: none;
+    width: 250px;
+    outline: none;
+}
+
+/* Table */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(12px);
+    border-radius: 15px;
+    overflow: hidden;
+}
+th, td {
+    padding: 14px;
+    text-align: center;
+}
+th {
+    background: rgba(255,255,255,0.2);
+}
+tr:hover {
+    background: rgba(255,255,255,0.25);
+}
+
+/* Buttons */
+.action-btn {
+    padding: 6px 14px;
+    border-radius: 20px;
+    background: #facc15;
+    color: black;
+    text-decoration: none;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Pagination (Google style) */
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 25px 0;
+}
+.pagination a,
+.pagination span {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    color: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    font-weight: 600;
+}
+.pagination a:hover {
+    background: white;
+}
+.pagination .current {
+    background: white;
+    color: #6366f1;
+}
+.pagination .disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+}
+.modal-content {
+    background: white;
+    color: black;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    width: 300px;
+}
+.modal button {
+    margin: 8px;
+    padding: 6px 14px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.confirm {
+    background: #22c55e;
+    color: white;
+}
+.cancel {
+    background: #f87171;
+    color: white;
+}
+</style>
+</head>
+
+<body>
+
+<!-- Navbar -->
+<div class="navbar">
+    <a href="{% url 'communities_list' %}">Back to Communities</a>
+</div>
+
+<div class="container">
+
+<h1>Community Detail</h1>
+
+<div class="community-info">
+    <span><strong>Name:</strong> {{ community.name }}</span>
+    <span><strong>Created By:</strong> {{ community.creater.name }}</span>
+</div>
+
+<div style="margin-bottom:15px;">
+    <a href="{% url 'community_member' community.id %}" class="action-btn">
+        View Members in this Community
+    </a>
+</div>
+
+<!-- Dynamic Search -->
+<div class="search-form">
+    <input type="text" id="searchInput" placeholder="Search posts..." value="{{ query }}">
+</div>
+
+<div class="table-responsive">
+<table>
+<tr>
+    <th>Sl No.</th>
+    <th>Title</th>
+    <th>Caption</th>
+    <th>Likes</th>
+    <th>Posted By</th>
+    <th>Posted At</th>
+    <th>Action</th>
+</tr>
+
+{% for post in posts_page %}
+<tr>
+    <td>{{ forloop.counter0|add:posts_page.start_index }}</td>
+    <td>{{ post.title }}</td>
+    <td>{{ post.caption }}</td>
+    <td>{{ post.likes_count }}</td>
+    <td>{{ post.postedby.name }}</td>
+    <td>{{ post.created_at|date:"d M Y" }}</td>
+    <td>
+        <button type="button" class="action-btn delete-btn" data-id="{{ post.id }}">
+            Delete
+        </button>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="7">No posts found</td>
+</tr>
+{% endfor %}
+</table>
+</div>
+
+<!-- Google-style Pagination -->
+<div class="pagination">
+    {% if posts_page.has_previous %}
+        <a href="?page={{ posts_page.previous_page_number }}&q={{ query }}">‹</a>
+    {% else %}
+        <span class="disabled">‹</span>
+    {% endif %}
+
+    {% for num in posts_page.paginator.page_range %}
+        {% if num == posts_page.number %}
+            <span class="current">{{ num }}</span>
+        {% elif num >= posts_page.number|add:'-2' and num <= posts_page.number|add:'2' %}
+            <a href="?page={{ num }}&q={{ query }}">{{ num }}</a>
+        {% endif %}
+    {% endfor %}
+
+    {% if posts_page.has_next %}
+        <a href="?page={{ posts_page.next_page_number }}&q={{ query }}">›</a>
+    {% else %}
+        <span class="disabled">›</span>
+    {% endif %}
+</div>
+
+</div>
+
+<!-- Delete Modal -->
+<div class="modal" id="deleteModal">
+    <div class="modal-content">
+        <p>Delete this post?</p>
+        <button class="confirm" id="confirmDelete">Yes</button>
+        <button class="cancel" id="cancelDelete">No</button>
+    </div>
+</div>
+
+<script>
+/* Dynamic Search */
+let timer = null;
+document.getElementById("searchInput").addEventListener("keyup", function () {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+        window.location.href = `?q=${encodeURIComponent(this.value)}`;
+    }, 400);
+});
+
+/* Delete Modal */
+let deleteId = null;
+const modal = document.getElementById("deleteModal");
+
+document.querySelectorAll(".delete-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+        deleteId = btn.dataset.id;
+        modal.style.display = "flex";
+    });
+});
+
+document.getElementById("cancelDelete").onclick = () => {
+    modal.style.display = "none";
+    deleteId = null;
+};
+
+document.getElementById("confirmDelete").onclick = () => {
+    alert("Delete API call for post ID: " + deleteId);
+    modal.style.display = "none";
+};
+</script>
+
+</body>
+</html>

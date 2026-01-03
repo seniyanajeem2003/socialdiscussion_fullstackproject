@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+{% load static %}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ community.name }} - Members</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+
+<style>
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #6366f1, #ec4899);
+    color: white;
+    margin: 0;
+    min-height: 100vh;
+}
+
+.navbar {
+    display: flex;
+    justify-content: flex-end;
+    padding: 20px 40px;
+}
+
+.navbar a {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 20px auto;
+}
+
+.header-box {
+    background: rgba(255,255,255,0.15);
+    padding: 20px;
+    border-radius: 15px;
+    backdrop-filter: blur(12px);
+    margin-bottom: 15px;
+}
+
+.search-form {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 15px;
+}
+
+.search-form input {
+    width: 260px;
+    padding: 10px 14px;
+    border-radius: 25px;
+    border: none;
+    outline: none;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(12px);
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+th, td {
+    padding: 14px;
+    text-align: center;
+}
+
+th {
+    background: rgba(255,255,255,0.25);
+}
+
+tr:hover {
+    background: rgba(255,255,255,0.25);
+}
+
+.action-group {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-view {
+    background: #34d399;
+}
+.btn-remove {
+    background: #f87171;
+}
+
+.btn-view,
+.btn-remove {
+    padding: 6px 14px;
+    border-radius: 20px;
+    color: black;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-view:hover,
+.btn-remove:hover {
+    transform: scale(1.08);
+}
+
+/* GOOGLE STYLE PAGINATION */
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin: 30px 0;
+}
+
+.pagination a,
+.pagination span {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    text-decoration: none;
+    font-weight: 500;
+    color: white;
+}
+
+.pagination a:hover {
+    background: rgba(255,255,255,0.25);
+}
+
+.pagination .current {
+    background: white;
+    color: #6366f1;
+    font-weight: 600;
+}
+
+.pagination .disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+/* MODAL */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    color: black;
+    width: 320px;
+    text-align: center;
+}
+
+.modal button {
+    margin: 8px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.confirm {
+    background: #22c55e;
+    color: white;
+}
+
+.cancel {
+    background: #f87171;
+    color: white;
+}
+</style>
+</head>
+
+<body>
+
+<div class="navbar">
+    <a href="{% url 'community_detail' community.id %}">Back to Details</a>
+</div>
+
+<div class="container">
+
+<div class="header-box">
+    <h2>{{ community.name }} – Members</h2>
+</div>
+
+<form method="get" class="search-form" id="searchForm">
+    <input type="text" name="q" placeholder="Search users..." value="{{ query }}" id="searchInput">
+</form>
+
+<div class="table-responsive">
+<table>
+<tr>
+    <th>Sl No.</th>
+    <th>Name</th>
+    <th>Email</th>
+    <th>Action</th>
+</tr>
+
+{% for user in users_page %}
+<tr data-id="{{ user.id }}">
+    <td>{{ forloop.counter0|add:users_page.start_index }}</td>
+    <td>{{ user.name }}</td>
+    <td>{{ user.email }}</td>
+    <td>
+        <div class="action-group">
+            <a href="#" class="btn-view">View</a>
+            <button class="btn-remove remove-btn">Remove</button>
+        </div>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="4">No users found</td>
+</tr>
+{% endfor %}
+</table>
+</div>
+
+<!-- GOOGLE STYLE PAGINATION -->
+<div class="pagination">
+    {% if users_page.has_previous %}
+        <a href="?page={{ users_page.previous_page_number }}&q={{ query }}">‹</a>
+    {% else %}
+        <span class="disabled">‹</span>
+    {% endif %}
+
+    {% for num in users_page.paginator.page_range %}
+        {% if num == users_page.number %}
+            <span class="current">{{ num }}</span>
+        {% elif num >= users_page.number|add:'-2' and num <= users_page.number|add:'2' %}
+            <a href="?page={{ num }}&q={{ query }}">{{ num }}</a>
+        {% endif %}
+    {% endfor %}
+
+    {% if users_page.has_next %}
+        <a href="?page={{ users_page.next_page_number }}&q={{ query }}">›</a>
+    {% else %}
+        <span class="disabled">›</span>
+    {% endif %}
+</div>
+
+</div>
+
+<!-- REMOVE MODAL -->
+<div class="modal" id="removeModal">
+    <div class="modal-content">
+        <p>Remove this user from the community?</p>
+        <button class="confirm" id="confirmRemove">Yes</button>
+        <button class="cancel" id="cancelRemove">No</button>
+    </div>
+</div>
+
+<script>
+/* AUTO SEARCH */
+const searchInput = document.getElementById("searchInput");
+let timer = null;
+
+searchInput.addEventListener("keyup", () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+        document.getElementById("searchForm").submit();
+    }, 400);
+});
+
+/* REMOVE MODAL */
+let removeUserId = null;
+const modal = document.getElementById("removeModal");
+
+document.querySelectorAll(".remove-btn").forEach(btn => {
+    btn.onclick = () => {
+        removeUserId = btn.closest("tr").dataset.id;
+        modal.style.display = "flex";
+    };
+});
+
+document.getElementById("cancelRemove").onclick = () => {
+    modal.style.display = "none";
+    removeUserId = null;
+};
+
+document.getElementById("confirmRemove").onclick = async () => {
+    await fetch(`/community/{{ community.id }}/remove-user/${removeUserId}/`, {
+        method: "POST",
+        headers: { "X-CSRFToken": "{{ csrf_token }}" }
+    });
+    location.reload();
+};
+</script>
+
+</body>
+</html>

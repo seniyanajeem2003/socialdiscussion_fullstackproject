@@ -1,0 +1,20 @@
+/* Basic responsive helpers for admin templates */
+html,body{height:100%;margin:0;padding:0}
+body{box-sizing:border-box}
+.container{width:95%;max-width:1200px;margin:12px auto;padding:0 8px}
+.header-box,.section,.user-header{box-sizing:border-box}
+/* make tables horizontally scrollable on small screens */
+.table-responsive{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+table{width:100%;border-collapse:collapse;min-width:640px}
+th,td{padding:12px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* make avatar images scale */
+.user-header img, .profile-pic, img.avatar{max-width:100%;height:auto;border-radius:50%}
+/* small-screen adjustments */
+@media (max-width:640px){
+  .user-header{flex-direction:column;align-items:center;text-align:center}
+  .search-form{justify-content:center}
+  .header-box{flex-direction:column;align-items:flex-start;gap:8px}
+  .table-responsive{overflow-x:auto}
+  .table-responsive table{min-width:640px}
+  th,td{white-space:normal;padding:8px;font-size:14px}
+}

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+{% load static %}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Comment</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+
+<style>
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #6366f1, #ec4899);
+    color: white;
+    margin: 0;
+}
+
+/* Navbar */
+.navbar {
+    display: flex;
+    justify-content: flex-end;
+    padding: 20px 40px;
+}
+.navbar a {
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+/* Container */
+.container {
+    width: 90%;
+    max-width: 1400px;
+    margin: 20px auto;
+}
+
+/* Header */
+.header-box {
+    background: rgba(255,255,255,0.15);
+    padding: 20px;
+    border-radius: 15px;
+    backdrop-filter: blur(12px);
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+/* Search */
+.search-form {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 15px;
+}
+.search-form input {
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: none;
+    width: 260px;
+}
+
+/* Table */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(12px);
+    border-radius: 15px;
+}
+th, td {
+    padding: 14px;
+    text-align: center;
+}
+th {
+    background: rgba(255,255,255,0.25);
+}
+tr:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+/* Status */
+.status {
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-weight: 600;
+}
+.Visible {
+    background: #22c55e;
+    color: black;
+}
+.Hidden {
+    background: #f87171;
+    color: black;
+}
+
+/* Actions */
+.actions {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+.action-btn {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+}
+.toggle-btn {
+    background: #38bdf8;
+    color: black;
+}
+.delete-btn {
+    background: #f87171;
+    color: black;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 25px 0;
+}
+.pagination a,
+.pagination span {
+    padding: 6px 12px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+}
+.pagination .current {
+    background: white;
+    color: black;
+}
+.pagination .disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+/* ===== DELETE MODAL ===== */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+}
+.modal-box {
+    background: white;
+    color: black;
+    padding: 25px;
+    border-radius: 15px;
+    text-align: center;
+    width: 350px;
+}
+.modal-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+.modal-actions button {
+    padding: 8px 18px;
+    border-radius: 20px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+}
+.confirm-btn {
+    background: #ef4444;
+    color: white;
+}
+.cancel-btn {
+    background: #e5e7eb;
+}
+</style>
+</head>
+
+<body>
+
+<div class="navbar">
+    <a href="{% url 'admin_dashboard' %}">Home</a>
+</div>
+
+<div class="container">
+
+    <div class="header-box">
+        <h2>Comment Management</h2>
+        <span>Total: {{ total_comments }}</span>
+    </div>
+
+    <form method="get" id="searchForm" class="search-form">
+        <input type="text" name="q" id="searchInput"
+               placeholder="Search comments..."
+               value="{{ query }}">
+    </form>
+
+    <div class="table-responsive">
+    <table>
+        <tr>
+            <th>Sl No.</th>
+            <th>Comment</th>
+            <th>Post ID</th>
+            <th>Posted By</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+
+        {% for c in comments_page %}
+        <tr>
+            <td>{{ forloop.counter0|add:comments_page.start_index }}</td>
+            <td>{{ c.text }}</td>
+            <td>{{ c.post.id }}</td>
+            <td>{{ c.user.name }}</td>
+            <td>{{ c.created_at|date:"Y-m-d" }}</td>
+            <td>
+                <span class="status {% if c.is_visible %}Visible{% else %}Hidden{% endif %}">
+                    {% if c.is_visible %}Visible{% else %}Hidden{% endif %}
+                </span>
+            </td>
+            <td>
+                <div class="actions">
+                    <form method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="comment_id" value="{{ c.id }}">
+                        <button class="action-btn toggle-btn" name="action" value="toggle">
+                            {% if c.is_visible %}Hide{% else %}Unhide{% endif %}
+                        </button>
+                    </form>
+
+                    <button class="action-btn delete-btn"
+                            onclick="openDeleteModal('{{ c.id }}')">
+                        Delete
+                    </button>
+                </div>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7">No comments found</td>
+        </tr>
+        {% endfor %}
+    </table>
+    </div>
+
+    <div class="pagination">
+        {% if comments_page.has_previous %}
+            <a href="?page={{ comments_page.previous_page_number }}&q={{ query }}">‹</a>
+        {% else %}
+            <span class="disabled">‹</span>
+        {% endif %}
+
+        {% for num in comments_page.paginator.page_range %}
+            {% if num == comments_page.number %}
+                <span class="current">{{ num }}</span>
+            {% elif num >= comments_page.number|add:'-2' and num <= comments_page.number|add:'2' %}
+                <a href="?page={{ num }}&q={{ query }}">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {% if comments_page.has_next %}
+            <a href="?page={{ comments_page.next_page_number }}&q={{ query }}">›</a>
+        {% else %}
+            <span class="disabled">›</span>
+        {% endif %}
+    </div>
+</div>
+
+<!-- DELETE MODAL -->
+<div class="modal" id="deleteModal">
+    <div class="modal-box">
+        <h3>Delete Comment?</h3>
+        <p>This action cannot be undone.</p>
+
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="comment_id" id="deleteCommentId">
+            <input type="hidden" name="action" value="delete">
+
+            <div class="modal-actions">
+                <button type="submit" class="confirm-btn">Yes, Delete</button>
+                <button type="button" class="cancel-btn" onclick="closeDeleteModal()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+let timer;
+const input = document.getElementById("searchInput");
+const form = document.getElementById("searchForm");
+
+input.addEventListener("keyup", function () {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+        form.submit();
+    }, 400);
+});
+
+function openDeleteModal(commentId) {
+    document.getElementById("deleteCommentId").value = commentId;
+    document.getElementById("deleteModal").style.display = "flex";
+}
+
+function closeDeleteModal() {
+    document.getElementById("deleteModal").style.display = "none";
+}
+</script>
+
+</body>
+</html>
