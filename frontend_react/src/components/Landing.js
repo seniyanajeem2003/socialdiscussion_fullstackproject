@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axios from "axios";
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -10,77 +9,87 @@ export default function Landing() {
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    // If already logged in, redirect
     if (token) {
       navigate("/home");
       return;
     }
 
-    // Example API call (optional)
-    axios
-      .get("http://127.0.0.1:8000/api/latest_post")
-      .then(() => {
-        setLoading(false);
-      })
-      .catch(() => {
-        setLoading(false);
-      });
+    setLoading(false);
   }, [navigate]);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 text-white text-xl">
-        Loading...
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-800 via-purple-800 to-pink-700 text-white text-xl">
+        Loading SnapWire...
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 px-4 relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden flex items-center justify-center px-4 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800">
 
-      {/* Floating animated circles */}
+      {/* Animated gradient blobs */}
       <motion.div
-        className="absolute top-10 left-10 w-40 h-40 bg-purple-400 rounded-full opacity-30"
-        animate={{ y: [0, 20, 0], x: [0, 20, 0] }}
-        transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
+        className="absolute -top-32 -left-32 w-[500px] h-[500px] bg-purple-500 rounded-full opacity-30 blur-3xl"
+        animate={{ x: [0, 80, 0], y: [0, 60, 0] }}
+        transition={{ repeat: Infinity, duration: 14, ease: "easeInOut" }}
       />
       <motion.div
-        className="absolute bottom-20 right-20 w-60 h-60 bg-pink-400 rounded-full opacity-30"
-        animate={{ y: [0, -20, 0], x: [0, -30, 0] }}
-        transition={{ repeat: Infinity, duration: 8, ease: "easeInOut" }}
+        className="absolute -bottom-40 -right-40 w-[600px] h-[600px] bg-pink-500 rounded-full opacity-30 blur-3xl"
+        animate={{ x: [0, -100, 0], y: [0, -80, 0] }}
+        transition={{ repeat: Infinity, duration: 16, ease: "easeInOut" }}
       />
 
-      {/* Hero Content */}
+      {/* Subtle grid overlay */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.06)_1px,transparent_0)] bg-[size:24px_24px] opacity-20" />
+
+      {/* Main Content */}
       <motion.div
-        initial={{ opacity: 0, y: 40 }}
+        initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1 }}
-        className="text-center z-10"
+        transition={{ duration: 1.1, ease: "easeOut" }}
+        className="relative z-10 text-center max-w-2xl"
       >
-        <h1 className="text-5xl md:text-6xl font-bold text-white mb-4">
-          Join the Conversation
-        </h1>
+        {/* Brand Name */}
+        <motion.h1
+          initial={{ letterSpacing: "0.2em", opacity: 0 }}
+          animate={{ letterSpacing: "0.05em", opacity: 1 }}
+          transition={{ duration: 1.2 }}
+          className="text-6xl md:text-7xl font-extrabold text-white"
+        >
+          Snap
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 to-blue-400">
+            Wire
+          </span>
+        </motion.h1>
 
-        <p className="text-white text-lg md:text-xl mb-8">
-          Explore communities, share ideas, and start meaningful discussions.
-        </p>
+        {/* Tagline */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="mt-4 mb-12 text-lg md:text-xl text-white/90 italic"
+        >
+          Post the moment. Play the chat.
+        </motion.p>
 
-        <div className="flex flex-col md:flex-row justify-center gap-4">
+        {/* Buttons */}
+        <div className="flex flex-col md:flex-row justify-center gap-5">
           <Link to="/signup">
             <motion.button
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
-              className="bg-white text-indigo-600 px-8 py-3 rounded-xl font-semibold shadow-lg hover:bg-indigo-50 transition"
+              className="px-12 py-4 rounded-2xl bg-white text-indigo-800 font-semibold shadow-2xl hover:bg-indigo-50 transition"
             >
-              Sign Up
+              Get Started
             </motion.button>
           </Link>
 
           <Link to="/login">
             <motion.button
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
-              className="bg-indigo-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:bg-indigo-700 transition"
+              className="px-12 py-4 rounded-2xl bg-white/10 text-white border border-white/20 backdrop-blur-md font-semibold shadow-xl hover:bg-white/20 transition"
             >
               Login
             </motion.button>
@@ -88,11 +97,11 @@ export default function Landing() {
         </div>
       </motion.div>
 
-      {/* Footer Illustration */}
+      {/* Bottom glow */}
       <motion.div
-        className="absolute bottom-0 left-0 w-full h-48 bg-white/10 backdrop-blur-sm rounded-t-3xl"
-        animate={{ y: [0, 10, 0] }}
-        transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
+        className="absolute bottom-0 left-0 w-full h-40 bg-gradient-to-t from-black/40 to-transparent"
+        animate={{ opacity: [0.4, 0.6, 0.4] }}
+        transition={{ repeat: Infinity, duration: 6 }}
       />
     </div>
   );
